@@ -2,6 +2,8 @@ import React from 'react';
 import { Search } from '../components/Search';
 import { SubmitButton } from '../components/SubmitButton';
 import styles from './styles/AppContainer.css';
+import RepositoryStore from '../stores/repositoryStore';
+import { fetchApi, fetchRepo } from '../actions/repositoryAction';
 
 export default class AppContainer extends React.Component {
 
@@ -11,6 +13,7 @@ export default class AppContainer extends React.Component {
       user: 'anonymous',
       search: '',
       disabled: true,
+      repositoryList: [],
     };
     this.onChangeValue = this.onChangeValue.bind(this);
     this.onSearch = this.onSearch.bind(this);
@@ -19,18 +22,37 @@ export default class AppContainer extends React.Component {
 
   value = '';
 
-  renderSearchValue() {
+  componentDidMount() {
+    fetchApi('khrtz');
+    RepositoryStore.on('changed', () => {
+      this.setState({ repositoryList: RepositoryStore.getRepository() });
+    });
+  }
+
+  renderSearchResults(v) {
+    const el = (
+      <div key={v.id}>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href={v.html_url}
+        >
+          {v.name}
+        </a> ★{v.stargazers_count}
+      </div>
+    );
+    return el;
   }
 
   render() {
     const {
-      user,
       disabled,
+      repositoryList,
     } = this.state;
 
     return (
       <div className={styles.container}>
-        Hi, {user}!
+        気になるユーザーを検索しよう！
         <Search
           value={this.value}
           onChangeValue={this.onChangeValue}
@@ -41,8 +63,11 @@ export default class AppContainer extends React.Component {
           disabled={disabled}
         />
         {this.state.search &&
-          <div>{this.state.search}の検索結果</div>
+          <h2 className={styles['search-header']}>{this.state.search}の検索結果</h2>
         }
+        {repositoryList.map(v =>
+          this.renderSearchResults(v),
+        )}
       </div>
     );
   }
@@ -61,8 +86,12 @@ export default class AppContainer extends React.Component {
   }
 
   onSearch() {
+    const searchText = this.value;
     this.setState({
-      search: this.value,
+      search: searchText,
+    });
+    fetchRepo(searchText).then((res) => {
+      RepositoryStore.updateRepositoryList(res);
     });
   }
 
