@@ -1,31 +1,35 @@
 import React from 'react';
 import { Search } from '../components/Search';
 import { SubmitButton } from '../components/SubmitButton';
+import { SortButton } from '../components/SortButton';
 import styles from './styles/AppContainer.css';
 import RepositoryStore from '../stores/repositoryStore';
-import { fetchApi, fetchRepo } from '../actions/repositoryAction';
+import { fetchRepository } from '../actions/repositoryAction';
 
 export default class AppContainer extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      user: 'anonymous',
-      search: '',
+      searchText: '',
       disabled: true,
       repositoryList: [],
+      isLatest: true,
     };
     this.onChangeValue = this.onChangeValue.bind(this);
     this.onSearch = this.onSearch.bind(this);
     this.onEnterSearch = this.onEnterSearch.bind(this);
+    this.onClickChangeOrder = this.onClickChangeOrder.bind(this);
   }
 
   value = '';
 
   componentDidMount() {
-    fetchApi('khrtz');
     RepositoryStore.on('changed', () => {
       this.setState({ repositoryList: RepositoryStore.getRepository() });
+    });
+    RepositoryStore.on('changed', () => {
+      this.setState({ isLatest: RepositoryStore.getOrderType() });
     });
   }
 
@@ -48,22 +52,31 @@ export default class AppContainer extends React.Component {
     const {
       disabled,
       repositoryList,
+      isLatest,
+      searchText,
     } = this.state;
 
     return (
       <div className={styles.container}>
-        気になるユーザーを検索しよう！
-        <Search
-          value={this.value}
-          onChangeValue={this.onChangeValue}
-          onEnterSearch={this.onEnterSearch}
-        />
-        <SubmitButton
-          onSearch={this.onSearch}
-          disabled={disabled}
-        />
-        {this.state.search &&
-          <h2 className={styles['search-header']}>{this.state.search}の検索結果</h2>
+        <div className={styles['search-box']}>
+          <Search
+            value={this.value}
+            onChangeValue={this.onChangeValue}
+            onEnterSearch={this.onEnterSearch}
+          />
+          <SubmitButton
+            onSearch={this.onSearch}
+            disabled={disabled}
+          />
+        </div>
+        {searchText &&
+          <h2 className={styles['search-header']}>{searchText}の検索結果</h2>
+        }
+        {repositoryList.length > 0 &&
+          <SortButton
+            onClick={this.onClickChangeOrder}
+            isLatest={isLatest}
+          />
         }
         {repositoryList.map(v =>
           this.renderSearchResults(v),
@@ -86,11 +99,11 @@ export default class AppContainer extends React.Component {
   }
 
   onSearch() {
-    const searchText = this.value;
+    const text = this.value;
     this.setState({
-      search: searchText,
+      searchText: text,
     });
-    fetchRepo(searchText).then((res) => {
+    fetchRepository(text).then((res) => {
       RepositoryStore.updateRepositoryList(res);
     });
   }
@@ -101,5 +114,10 @@ export default class AppContainer extends React.Component {
     if (e.keyCode === 13) {
       self.onSearch();
     }
+  }
+
+  onClickChangeOrder() {
+    const list = [...this.state.repositoryList];
+    RepositoryStore.orderChange(list);
   }
 }

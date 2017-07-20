@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import styles from './styles/Search.css';
 
 type Props = {
   className?: string;
@@ -13,7 +14,7 @@ export const Search: FunctionalComponent<Props, *> = ({
   onChangeValue,
   onEnterSearch,
 }) => (
-  <div>
+  <div className={styles.search}>
     <input
       size="45"
       defaultValue={value}

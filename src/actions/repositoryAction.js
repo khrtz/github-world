@@ -5,18 +5,7 @@ import { EventEmitter } from 'events';
 * @return {Array<Object>} An array of repository fetched from GitHub API
 */
 
-export function fetchApi(id: string) {
-  return fetch(`https://api.github.com/users/${id}`)
-  .then(res => {
-    if (res.ok) {
-      return res.json();
-    } else {
-      return console.log('res bad');
-    }
-  });
-}
-
-export function fetchRepo(id: string) {
+export function fetchRepository(id: string) {
   return fetch(`https://api.github.com/users/${id}/repos`)
   .then(res => {
     if (res.ok) {
@@ -27,8 +16,11 @@ export function fetchRepo(id: string) {
   });
 }
 
-export function fetchReceivedEvents() {
-  return fetch(`https://api.github.com/users/khrtz/received_events`)
+
+// 今回使わない
+
+export function fetchApi(id: string) {
+  return fetch(`https://api.github.com/users/${id}`)
   .then(res => {
     if (res.ok) {
       return res.json();
