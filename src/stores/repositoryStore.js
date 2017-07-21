@@ -17,6 +17,7 @@ class RepositoryStore extends EventEmitter {
 
   updateRepositoryList(repositoryList) {
     this.repositoryList = repositoryList;
+    this.isLatest = true;
     this.emit('changed');
   }
 
